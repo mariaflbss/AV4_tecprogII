@@ -1,15 +1,26 @@
-import NavBar from "./shared/components/NavBar";
+import { Routes, Route, Navigate } from "react-router-dom";
+import SideBar from "./shared/components/SideBar";
+import Dashboard from "./pages/TelaDashboard";
+
+function Layout() {
+  return (
+    <div className="flex min-h-screen">
+      <SideBar />
+
+      <div className="flex-1">
+        <Routes>
+          <Route path="/dashboard" element={<Dashboard />} />
+        </Routes>
+      </div>
+    </div>
+  );
+}
 
 export default function App() {
   return (
-    <div className="flex min-h-screen bg-base-100">
-      <NavBar />
-
-      <main className="flex-1 p-10">
-        <h1 className="text-3xl font-bold">
-          Dashboard Atlantis
-        </h1>
-      </main>
-    </div>
+    <Routes>
+      <Route path="/" element={<Navigate to="/dashboard" />} />
+      <Route path="/*" element={<Layout />} />
+    </Routes>
   );
 }
