@@ -1,311 +1,238 @@
-import { useState } from "react";
-
+import { ReactNode } from "react";
 import {
-  FaUsers,
-  FaBed,
-  FaCalendarAlt,
-  FaDollarSign,
-  FaUserPlus,
-  FaPlus,
-} from "react-icons/fa";
+  FiUsers,
+  FiCalendar,
+  FiDollarSign,
+  FiUserPlus,
+  FiClipboard,
+  FiPlusCircle,
+} from "react-icons/fi";
+import { LuBed } from "react-icons/lu";
 
-import { BarChart } from "@mui/x-charts/BarChart";
+import Card from "../shared/components/Card";
+import Tabela from "../shared/components/Tabela";
+import Menu from "../shared/components/Menu";
+import GraficoReservas from "../components/GraficoReservas";
 
-const stats = [
+interface Reserva {
+  hospede: string;
+  quarto: string;
+  checkIn: string;
+  checkOut: string;
+  status: "Confirmada" | "Hospedado" | "Pendente" | "Cancelada";
+}
+
+const reservas: Reserva[] = [
   {
-    title: "Total Guests",
-    value: "1,234",
-    icon: <FaUsers />,
-    color: "text-primary",
+    hospede: "João Silva",
+    quarto: "301",
+    checkIn: "15/05/2026",
+    checkOut: "18/05/2026",
+    status: "Confirmada",
   },
   {
-    title: "Available Rooms",
-    value: "42",
-    icon: <FaBed />,
-    color: "text-success",
+    hospede: "Maria Oliveira",
+    quarto: "205",
+    checkIn: "16/05/2026",
+    checkOut: "20/05/2026",
+    status: "Confirmada",
   },
   {
-    title: "Reservations",
-    value: "87",
-    icon: <FaCalendarAlt />,
-    color: "text-warning",
+    hospede: "Carlos Mendes",
+    quarto: "412",
+    checkIn: "14/05/2026",
+    checkOut: "17/05/2026",
+    status: "Hospedado",
   },
   {
-    title: "Revenue",
-    value: "$124,500",
-    icon: <FaDollarSign />,
-    color: "text-secondary",
+    hospede: "Ana Ferreira",
+    quarto: "108",
+    checkIn: "17/05/2026",
+    checkOut: "19/05/2026",
+    status: "Pendente",
   },
 ];
 
-const reservations = [
+const statusColors = {
+  Confirmada: "bg-emerald-50 text-emerald-700",
+  Hospedado: "bg-indigo-50 text-indigo-700",
+  Pendente: "bg-amber-50 text-amber-700",
+  Cancelada: "bg-red-50 text-red-700",
+};
+
+const colunas = [
   {
-    guest: "John Smith",
-    room: "301",
-    checkIn: "15/05",
-    status: "Confirmed",
+    chave: "hospede",
+    titulo: "Hóspede",
+    render: (v: unknown) => (
+      <span className="font-medium text-slate-800">{String(v)}</span>
+    ),
   },
   {
-    guest: "Maria Garcia",
-    room: "205",
-    checkIn: "16/05",
-    status: "Checked In",
+    chave: "quarto",
+    titulo: "Quarto",
+    render: (v: unknown) => (
+      <span className="text-xs bg-slate-100 px-2 py-1 rounded">
+        {String(v)}
+      </span>
+    ),
   },
   {
-    guest: "David Chen",
-    room: "412",
-    checkIn: "17/05",
-    status: "Pending",
+    chave: "checkIn",
+    titulo: "Check-in",
+  },
+  {
+    chave: "checkOut",
+    titulo: "Check-out",
+  },
+  {
+    chave: "status",
+    titulo: "Status",
+    render: (v: unknown) => (
+      <span
+        className={`text-xs px-2 py-1 rounded-full font-medium ${
+          statusColors[v as keyof typeof statusColors]
+        }`}
+      >
+        {String(v)}
+      </span>
+    ),
   },
 ];
 
-const dataset = [
-  { month: "Jan", value: 65 },
-  { month: "Feb", value: 72 },
-  { month: "Mar", value: 80 },
-  { month: "Apr", value: 91 },
-  { month: "May", value: 88 },
-];
+interface InfoCardProps {
+  titulo: string;
+  valor: string;
+  icone: ReactNode;
+  cor: string;
+}
+
+function InfoCard({ titulo, valor, icone, cor }: InfoCardProps) {
+  return (
+    <Card className="flex items-center justify-between">
+      <div>
+        <p className="text-sm text-slate-400">{titulo}</p>
+        <strong className="text-2xl text-slate-900">{valor}</strong>
+      </div>
+
+      <div
+        className={`w-11 h-11 rounded-xl flex items-center justify-center ${cor}`}
+      >
+        {icone}
+      </div>
+    </Card>
+  );
+}
+
+interface ActionButtonProps {
+  icon: ReactNode;
+  label: string;
+}
+
+function ActionButton({ icon, label }: ActionButtonProps) {
+  return (
+    <button className="w-full flex items-center gap-2 px-4 py-3 rounded-xl bg-slate-900 text-white text-sm hover:bg-slate-800 transition">
+      {icon}
+      {label}
+    </button>
+  );
+}
 
 export default function Dashboard() {
-  const [tickPlacement, setTickPlacement] =
-    useState("middle");
-
-  const [tickLabelPlacement, setTickLabelPlacement] =
-    useState("middle");
-
   return (
-    <div className="p-8 space-y-8 bg-base-100 min-h-screen">
+    <div className="flex min-h-screen bg-slate-50">
+      <Menu />
 
-      {/* HEADER */}
-      <div className="flex items-center justify-between">
+      <main className="flex-1 p-8">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
 
-        <div>
-          <h1 className="text-4xl font-bold">
-            Dashboard
-          </h1>
-
-          <p className="text-base-content/60 mt-2">
-            Hotel management overview
+          <p className="text-sm text-slate-500 mt-1">
+            {new Date().toLocaleDateString("pt-BR", {
+              weekday: "long",
+              day: "numeric",
+              month: "long",
+            })}
           </p>
         </div>
 
-        <button className="btn btn-primary rounded-2xl">
-          <FaPlus />
-          New Reservation
-        </button>
-      </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+          <InfoCard
+            titulo="Hóspedes"
+            valor="1.234"
+            icone={<FiUsers className="text-white" />}
+            cor="bg-indigo-500"
+          />
 
-      {/* CARDS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+          <InfoCard
+            titulo="Quartos"
+            valor="42"
+            icone={<LuBed className="text-white" />}
+            cor="bg-emerald-500"
+          />
 
-        {stats.map((item, index) => (
-          <div
-            key={index}
-            className="
-              card
-              bg-base-100
-              border
-              border-base-300
-              shadow-sm
-              hover:shadow-xl
-              transition-all
-            "
-          >
-            <div className="card-body">
+          <InfoCard
+            titulo="Reservas"
+            valor="87"
+            icone={<FiCalendar className="text-white" />}
+            cor="bg-amber-500"
+          />
 
-              <div
-                className={`
-                  text-3xl
-                  ${item.color}
-                `}
-              >
-                {item.icon}
-              </div>
-
-              <h2 className="card-title mt-4">
-                {item.title}
-              </h2>
-
-              <p className="text-4xl font-bold">
-                {item.value}
-              </p>
-
-              <div className="card-actions justify-end">
-                <button className="btn btn-sm btn-outline">
-                  View
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* GRID */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-
-        {/* TABLE */}
-        <div className="xl:col-span-2 card bg-base-100 border border-base-300 shadow-sm">
-
-          <div className="card-body">
-
-            <div className="flex items-center justify-between mb-4">
-
-              <h2 className="card-title">
-                Recent Reservations
-              </h2>
-
-              <button className="btn btn-sm btn-primary">
-                View All
-              </button>
-            </div>
-
-            <div className="overflow-x-auto">
-
-              <table className="table table-zebra">
-
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Guest</th>
-                    <th>Room</th>
-                    <th>Check-in</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-
-                  {reservations.map((item, index) => (
-                    <tr key={index}>
-
-                      <th>{index + 1}</th>
-
-                      <td>{item.guest}</td>
-
-                      <td>{item.room}</td>
-
-                      <td>{item.checkIn}</td>
-
-                      <td>
-                        <div
-                          className={`
-                            badge
-
-                            ${
-                              item.status === "Confirmed"
-                                ? "badge-success"
-                                : item.status === "Checked In"
-                                ? "badge-info"
-                                : "badge-warning"
-                            }
-                          `}
-                        >
-                          {item.status}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        {/* QUICK ACTIONS */}
-        <div className="card bg-base-100 border border-base-300 shadow-sm">
-
-          <div className="card-body">
-
-            <h2 className="card-title mb-4">
-              Quick Actions
-            </h2>
-
-            <ul className="menu bg-base-200 rounded-box p-0">
-
-              <li>
-                <a>
-                  <FaUserPlus />
-                  Add Guest
-                </a>
-              </li>
-
-              <li>
-                <a>
-                  <FaCalendarAlt />
-                  Register Reservation
-                </a>
-              </li>
-
-              <li>
-                <a>
-                  <FaPlus />
-                  Add Room
-                </a>
-              </li>
-
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      {/* CHART */}
-      <div className="card bg-base-100 border border-base-300 shadow-sm">
-
-        <div className="card-body">
-
-          <div className="flex items-center justify-between mb-6">
-
-            <h2 className="card-title">
-              Occupancy Overview
-            </h2>
-
-            <div className="flex gap-2">
-
-              <select
-                className="select select-bordered select-sm"
-                value={tickPlacement}
-                onChange={(e) =>
-                  setTickPlacement(e.target.value)
-                }
-              >
-                <option value="middle">
-                  Middle
-                </option>
-
-                <option value="start">
-                  Start
-                </option>
-
-                <option value="end">
-                  End
-                </option>
-              </select>
-
-            </div>
-          </div>
-
-          <BarChart
-            dataset={dataset}
-            xAxis={[
-              {
-                scaleType: "band",
-                dataKey: "month",
-                tickPlacement,
-                tickLabelPlacement,
-              },
-            ]}
-            series={[
-              {
-                dataKey: "value",
-                label: "Occupancy %",
-              },
-            ]}
-            height={350}
+          <InfoCard
+            titulo="Receita"
+            valor="R$ 124.500"
+            icone={<FiDollarSign className="text-white" />}
+            cor="bg-violet-500"
           />
         </div>
-      </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-6">
+          <Card className="xl:col-span-2">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-semibold text-slate-800">
+                Reservas recentes
+              </h2>
+
+              <span className="text-sm text-slate-400">
+                {reservas.length} reservas
+              </span>
+            </div>
+
+            <Tabela
+              colunas={colunas}
+              dados={reservas as unknown as Record<string, unknown>[]}
+              linhasPorPagina={4}
+            />
+          </Card>
+
+          <Card>
+            <h2 className="font-semibold text-slate-800 mb-4">
+              Ações rápidas
+            </h2>
+
+            <div className="flex flex-col gap-3">
+              <ActionButton
+                icon={<FiUserPlus size={16} />}
+                label="Adicionar hóspede"
+              />
+
+              <ActionButton
+                icon={<FiClipboard size={16} />}
+                label="Registrar reserva"
+              />
+
+              <ActionButton
+                icon={<FiPlusCircle size={16} />}
+                label="Adicionar quarto"
+              />
+            </div>
+          </Card>
+        </div>
+
+        <Card>
+          <GraficoReservas />
+        </Card>
+      </main>
     </div>
   );
 }

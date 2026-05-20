@@ -1,11 +1,11 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import SideBar from "./shared/components/SideBar";
+//import SideBar from "./shared/components/SideBar";
 import Dashboard from "./pages/TelaDashboard";
 
 function Layout() {
   return (
     <div className="flex min-h-screen">
-      <SideBar />
+      {/*<SideBar />*/}
 
       <div className="flex-1">
         <Routes>
