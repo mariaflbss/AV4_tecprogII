@@ -24,28 +24,28 @@ interface Reserva {
 
 const reservas: Reserva[] = [
   {
-    hospede: "João Silva",
+    hospede: "Alan Turing",
     quarto: "301",
     checkIn: "15/05/2026",
     checkOut: "18/05/2026",
     status: "Confirmada",
   },
   {
-    hospede: "Maria Oliveira",
+    hospede: "Maria Laboissiere",
     quarto: "205",
     checkIn: "16/05/2026",
     checkOut: "20/05/2026",
     status: "Confirmada",
   },
   {
-    hospede: "Carlos Mendes",
+    hospede: "Gerson da Penha",
     quarto: "412",
     checkIn: "14/05/2026",
     checkOut: "17/05/2026",
     status: "Hospedado",
   },
   {
-    hospede: "Ana Ferreira",
+    hospede: "Ada Lovelace",
     quarto: "108",
     checkIn: "17/05/2026",
     checkOut: "19/05/2026",
