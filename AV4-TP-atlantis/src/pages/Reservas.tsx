@@ -229,6 +229,9 @@ export default function Reservas() {
   const [reservaSelecionada, setReservaSelecionada] =
     useState<Reserva | null>(null);
 
+  const [reservaEditando, setReservaEditando] =
+    useState<Reserva | null>(null);
+
   const filtradas = reservas.filter((r) => {
     const buscaOk =
       r.hospedes.some((h) =>
@@ -391,7 +394,10 @@ export default function Reservas() {
           </div>
 
           <button
-            onClick={() => setModalForm(true)}
+            onClick={() => {
+              setReservaEditando(null);
+              setModalForm(true);
+            }}
             className="
               flex items-center gap-2
               px-4 py-2.5
@@ -523,6 +529,10 @@ export default function Reservas() {
 
                             <button
                               title="Editar"
+                              onClick={() => {
+                                setReservaEditando(r);
+                                setModalForm(true);
+                              }}
                               className="w-8 h-8 rounded-lg flex items-center justify-center text-emerald-600 hover:bg-emerald-50 transition-colors"
                             >
                               <FiEdit2 size={15} />
@@ -634,15 +644,32 @@ export default function Reservas() {
             </div>
           )}
         </Card>
-        <FormReservas
+        <FormReservas 
+          key={reservaEditando?.id || "nova"}
           aberto={modalForm}
-          onClose={() => setModalForm(false)}
-          onSalvar={(novaReserva) =>
-            setReservas((prev) => [
-              novaReserva,
-              ...prev,
-            ])
-          }
+          reservaEditando ={reservaEditando}
+          onClose={() => {
+            setModalForm(false);
+            setReservaEditando(null);
+          }}
+          onSalvar={(novaReserva) => {
+            if (reservaEditando) {
+              setReservas((prev) =>
+                prev.map((r) =>
+                  r.id === novaReserva.id
+                    ? novaReserva
+                    : r
+                )
+              );
+            } else {
+              setReservas((prev) => [
+                novaReserva,
+                ...prev,
+              ]);
+            }
+
+            setReservaEditando(null);
+          }}
         />
 
         <DetalhesReserva

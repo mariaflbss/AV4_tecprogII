@@ -1,5 +1,14 @@
-import { useState } from "react";
-import { FiX, FiTrash2 } from "react-icons/fi";
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
+import {
+  FiX,
+  FiTrash2,
+} from "react-icons/fi";
+
 import clientesBase from "../mocks/clientes";
 
 interface HospedeReserva {
@@ -9,18 +18,47 @@ interface HospedeReserva {
   titularId?: number;
 }
 
+interface Reserva {
+  id: number;
+  hospedes: HospedeReserva[];
+  quarto: string;
+  checkIn: string;
+  checkOut: string;
+  status:
+    | "Confirmada"
+    | "Hospedado"
+    | "Check-out"
+    | "Pendente"
+    | "Cancelada";
+  avatar: string;
+}
+
 interface FormReservaProps {
   aberto: boolean;
   onClose: () => void;
-  onSalvar: (novaReserva: any) => void;
+  onSalvar: (
+    reserva: Reserva
+  ) => void;
+
+  reservaEditando?: Reserva | null;
 }
+
+const STATUS_OPTIONS = [
+  "Pendente",
+  "Confirmada",
+  "Hospedado",
+  "Check-out",
+  "Cancelada",
+] as const;
 
 export default function FormReserva({
   aberto,
   onClose,
   onSalvar,
+  reservaEditando,
 }: FormReservaProps) {
-  const [quarto, setQuarto] = useState("");
+  const [quarto, setQuarto] =
+    useState("");
 
   const [checkIn, setCheckIn] =
     useState("");
@@ -28,346 +66,439 @@ export default function FormReserva({
   const [checkOut, setCheckOut] =
     useState("");
 
-  const [status, setStatus] = useState<
-    | "Confirmada"
-    | "Hospedado"
-    | "Check-out"
-    | "Pendente"
-    | "Cancelada"
-  >("Pendente");
+  const [status, setStatus] =
+    useState<
+      | "Confirmada"
+      | "Hospedado"
+      | "Check-out"
+      | "Pendente"
+      | "Cancelada"
+    >("Pendente");
 
-  const [titularSelecionado, setTitularSelecionado] =
-    useState<number | null>(null);
+  const [
+    titularSelecionado,
+    setTitularSelecionado,
+  ] = useState<number | null>(null);
 
-  const [dependentesSelecionados, setDependentesSelecionados] =
-    useState<number[]>([]);
+  const [
+    dependentesSelecionados,
+    setDependentesSelecionados,
+  ] = useState<number[]>([]);
 
-  const titulares = clientesBase.filter(
-    (cliente) => cliente.tipo === "Titular"
+  const titulares = useMemo(
+    () =>
+      clientesBase.filter(
+        (cliente) =>
+          cliente.tipo ===
+          "Titular"
+      ),
+    []
   );
 
-  const titular = clientesBase.find(
-    (cliente) =>
-      cliente.id === titularSelecionado
+  const titular = useMemo(
+    () =>
+      clientesBase.find(
+        (cliente) =>
+          cliente.id ===
+          titularSelecionado
+      ),
+    [titularSelecionado]
   );
 
-  const dependentes = clientesBase.filter(
-    (cliente) =>
-      cliente.tipo === "Dependente" &&
-      cliente.titularId === titularSelecionado
+  const dependentes = useMemo(
+    () =>
+      clientesBase.filter(
+        (cliente) =>
+          cliente.tipo ===
+            "Dependente" &&
+          cliente.titularId ===
+            titularSelecionado
+      ),
+    [titularSelecionado]
   );
+
+  useEffect(() => {
+    if (
+      aberto &&
+      reservaEditando
+    ) {
+      setQuarto(
+        reservaEditando.quarto
+      );
+
+      setCheckIn(
+        reservaEditando.checkIn
+      );
+
+      setCheckOut(
+        reservaEditando.checkOut
+      );
+
+      setStatus(
+        reservaEditando.status
+      );
+
+      const titular =
+        reservaEditando.hospedes.find(
+          (h) =>
+            h.tipo ===
+            "Titular"
+        );
+
+      setTitularSelecionado(
+        titular?.id || null
+      );
+
+      const dependentesIds =
+        reservaEditando.hospedes
+          .filter(
+            (h) =>
+              h.tipo ===
+              "Dependente"
+          )
+          .map((h) => h.id);
+
+      setDependentesSelecionados(
+        dependentesIds
+      );
+
+      return;
+    }
+
+    if (aberto) {
+      limparFormulario();
+    }
+  }, [
+    aberto,
+    reservaEditando,
+  ]);
 
   if (!aberto) return null;
 
-  function selecionarTitular(id: number) {
-    setTitularSelecionado(id);
-
-    const deps = clientesBase
-      .filter(
-        (cliente) =>
-          cliente.tipo === "Dependente" &&
-          cliente.titularId === id
-      )
-      .map((dep) => dep.id);
-
-    setDependentesSelecionados(deps);
-  }
-
-  function removerDependente(id: number) {
-    setDependentesSelecionados((prev) =>
-      prev.filter((depId) => depId !== id)
+  function limparFormulario() {
+    setQuarto("");
+    setCheckIn("");
+    setCheckOut("");
+    setStatus("Pendente");
+    setTitularSelecionado(
+      null
+    );
+    setDependentesSelecionados(
+      []
     );
   }
 
-  function adicionarDependente(id: number) {
+  function selecionarTitular(
+    id: number
+  ) {
+    setTitularSelecionado(id);
+
+    const deps =
+      clientesBase
+        .filter(
+          (cliente) =>
+            cliente.tipo ===
+              "Dependente" &&
+            cliente.titularId === id
+        )
+        .map((dep) => dep.id);
+
+    setDependentesSelecionados(
+      deps
+    );
+  }
+
+  function removerDependente(
+    id: number
+  ) {
+    setDependentesSelecionados(
+      (prev) =>
+        prev.filter(
+          (depId) =>
+            depId !== id
+        )
+    );
+  }
+
+  function adicionarDependente(
+    id: number
+  ) {
     if (
-      dependentesSelecionados.includes(id)
+      dependentesSelecionados.includes(
+        id
+      )
     )
       return;
 
-    setDependentesSelecionados((prev) => [
-      ...prev,
-      id,
-    ]);
+    setDependentesSelecionados(
+      (prev) => [...prev, id]
+    );
+  }
+
+  function gerarAvatar(
+    nome: string
+  ) {
+    return nome
+      .split(" ")
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join("");
   }
 
   function salvar() {
     if (!titular) return;
 
-    const hospedes: HospedeReserva[] = [
-      {
-        id: titular.id,
-        nome: titular.nome,
-        tipo: "Titular",
-      },
+    const hospedes: HospedeReserva[] =
+      [
+        {
+          id: titular.id,
+          nome: titular.nome,
+          tipo: "Titular",
+        },
 
-      ...dependentes
-        .filter((dep) =>
-          dependentesSelecionados.includes(
-            dep.id
+        ...dependentes
+          .filter((dep) =>
+            dependentesSelecionados.includes(
+              dep.id
+            )
           )
-        )
-        .map((dep) => ({
-          id: dep.id,
-          nome: dep.nome,
-          tipo: "Dependente" as const,
-          titularId: dep.titularId,
-        })),
-    ];
+          .map((dep) => ({
+            id: dep.id,
+            nome: dep.nome,
+            tipo:
+              "Dependente" as const,
+            titularId:
+              dep.titularId,
+          })),
+      ];
 
-    const novaReserva = {
-      id: Date.now(),
+    const reserva: Reserva = {
+      id:
+        reservaEditando?.id ||
+        Date.now(),
       hospedes,
       quarto,
       checkIn,
       checkOut,
       status,
-
-      avatar: titular.nome
-        .split(" ")
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join(""),
+      avatar: gerarAvatar(
+        titular.nome
+      ),
     };
 
-    onSalvar(novaReserva);
+    onSalvar(reserva);
+    limparFormulario();
     onClose();
-
-    setQuarto("");
-    setCheckIn("");
-    setCheckOut("");
-    setStatus("Pendente");
-    setTitularSelecionado(null);
-    setDependentesSelecionados([]);
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px] flex items-center justify-center p-4">
+      <div className="bg-white w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
+          <div>
+            <h2 className="text-xl font-bold text-slate-800">
+              {reservaEditando
+                ? "Editar Reserva"
+                : "Nova Reserva"}
+            </h2>
 
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-          <h2 className="text-lg font-bold text-slate-800">
-            Nova Reserva
-          </h2>
+            <p className="text-sm text-slate-400 mt-1">
+              Preencha os dados da
+              reserva e hóspedes.
+            </p>
+          </div>
 
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-lg hover:bg-slate-100 flex items-center justify-center"
+            className="w-10 h-10 rounded-xl hover:bg-slate-100 flex items-center justify-center transition-colors"
           >
-            <FiX />
+            <FiX size={18} />
           </button>
         </div>
 
-        <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
-
-          <div className="grid grid-cols-2 gap-4">
-
-            <div>
-              <label className="text-sm font-medium text-slate-600">
-                Quarto
-              </label>
-
+        <div className="p-6 space-y-8 max-h-[80vh] overflow-y-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Field label="Quarto">
               <input
                 value={quarto}
                 onChange={(e) =>
-                  setQuarto(e.target.value)
+                  setQuarto(
+                    e.target.value
+                  )
                 }
-                className="w-full mt-1 border border-slate-200 rounded-xl px-4 py-2.5"
+                placeholder="Ex: 301"
+                className="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f1f3d]/20"
               />
-            </div>
+            </Field>
 
-            <div>
-              <label className="text-sm font-medium text-slate-600">
-                Status
-              </label>
-
+            <Field label="Status">
               <select
                 value={status}
                 onChange={(e) =>
                   setStatus(
-                    e.target.value as
-                      | "Confirmada"
-                      | "Hospedado"
-                      | "Check-out"
-                      | "Pendente"
-                      | "Cancelada"
+                    e.target
+                      .value as typeof status
                   )
                 }
-                className="w-full mt-1 border border-slate-200 rounded-xl px-4 py-2.5"
+                className="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f1f3d]/20"
               >
-                <option value="Pendente">
-                  Pendente
-                </option>
-
-                <option value="Confirmada">
-                  Confirmada
-                </option>
-
-                <option value="Hospedado">
-                  Hospedado
-                </option>
-
-                <option value="Check-out">
-                  Check-out
-                </option>
-
-                <option value="Cancelada">
-                  Cancelada
-                </option>
+                {STATUS_OPTIONS.map(
+                  (option) => (
+                    <option
+                      key={option}
+                      value={option}
+                    >
+                      {option}
+                    </option>
+                  )
+                )}
               </select>
-            </div>
+            </Field>
 
-            <div>
-              <label className="text-sm font-medium text-slate-600">
-                Check-in
-              </label>
-
+            <Field label="Check-in">
               <input
                 type="date"
                 value={checkIn}
                 onChange={(e) =>
-                  setCheckIn(e.target.value)
+                  setCheckIn(
+                    e.target.value
+                  )
                 }
-                className="w-full mt-1 border border-slate-200 rounded-xl px-4 py-2.5"
+                className="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f1f3d]/20"
               />
-            </div>
+            </Field>
 
-            <div>
-              <label className="text-sm font-medium text-slate-600">
-                Check-out
-              </label>
-
+            <Field label="Check-out">
               <input
                 type="date"
                 value={checkOut}
                 onChange={(e) =>
-                  setCheckOut(e.target.value)
+                  setCheckOut(
+                    e.target.value
+                  )
                 }
-                className="w-full mt-1 border border-slate-200 rounded-xl px-4 py-2.5"
+                className="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f1f3d]/20"
               />
-            </div>
-
+            </Field>
           </div>
 
           <div>
-            <label className="text-sm font-medium text-slate-600">
-              Titular da Reserva
-            </label>
-
-            <select
-              value={titularSelecionado ?? ""}
-              onChange={(e) =>
-                selecionarTitular(
-                  Number(e.target.value)
-                )
-              }
-              className="w-full mt-1 border border-slate-200 rounded-xl px-4 py-2.5"
-            >
-              <option value="">
-                Selecione um titular
-              </option>
-
-              {titulares.map((titular) => (
-                <option
-                  key={titular.id}
-                  value={titular.id}
-                >
-                  {titular.nome}
+            <Field label="Titular da Reserva">
+              <select
+                value={
+                  titularSelecionado ??
+                  ""
+                }
+                onChange={(e) =>
+                  selecionarTitular(
+                    Number(
+                      e.target.value
+                    )
+                  )
+                }
+                className="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f1f3d]/20"
+              >
+                <option value="">
+                  Selecione um titular
                 </option>
-              ))}
-            </select>
+
+                {titulares.map(
+                  (titular) => (
+                    <option
+                      key={
+                        titular.id
+                      }
+                      value={
+                        titular.id
+                      }
+                    >
+                      {titular.nome}
+                    </option>
+                  )
+                )}
+              </select>
+            </Field>
           </div>
 
           {titular && (
-            <div className="border border-slate-200 rounded-2xl p-4">
+            <div className="border border-slate-200 rounded-3xl p-5 bg-slate-50/50">
+              <div className="mb-5">
+                <h3 className="font-bold text-slate-800">
+                  Hóspedes da Reserva
+                </h3>
 
-              <h3 className="font-semibold text-slate-700 mb-4">
-                Hóspedes da Reserva
-              </h3>
+                <p className="text-sm text-slate-400 mt-1">
+                  Gerencie titulares e
+                  dependentes vinculados.
+                </p>
+              </div>
 
               <div className="space-y-3">
-
-                <div className="flex items-center justify-between border border-slate-200 rounded-xl px-4 py-3">
-                  <div>
-                    <p className="font-medium text-slate-800">
-                      {titular.nome}
-                    </p>
-
-                    <p className="text-xs text-slate-400">
-                      Titular
-                    </p>
-                  </div>
-
-                  <span className="px-3 py-1 rounded-full text-xs bg-blue-100 text-blue-700">
-                    Titular
-                  </span>
-                </div>
+                <HospedeCard
+                  nome={titular.nome}
+                  tipo="Titular"
+                />
 
                 {dependentesSelecionados.map(
                   (depId) => {
                     const dep =
                       dependentes.find(
-                        (d) => d.id === depId
+                        (d) =>
+                          d.id === depId
                       );
 
-                    if (!dep) return null;
+                    if (!dep)
+                      return null;
 
                     return (
-                      <div
+                      <HospedeCard
                         key={dep.id}
-                        className="flex items-center justify-between border border-slate-200 rounded-xl px-4 py-3"
-                      >
-                        <div>
-                          <p className="font-medium text-slate-800">
-                            {dep.nome}
-                          </p>
-
-                          <p className="text-xs text-slate-400">
-                            Dependente
-                          </p>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <span className="px-3 py-1 rounded-full text-xs bg-purple-100 text-purple-700">
-                            Dependente
-                          </span>
-
+                        nome={dep.nome}
+                        tipo="Dependente"
+                        acao={
                           <button
                             onClick={() =>
                               removerDependente(
                                 dep.id
                               )
                             }
-                            className="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center"
+                            className="w-9 h-9 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center hover:bg-rose-100 transition-colors"
                           >
-                            <FiTrash2 size={14} />
+                            <FiTrash2 size={15} />
                           </button>
-                        </div>
-                      </div>
+                        }
+                      />
                     );
                   }
                 )}
+              </div>
 
-                {dependentes.length > 0 && (
-                  <div className="pt-2">
-                    <label className="text-sm font-medium text-slate-600">
-                      Adicionar dependente
-                    </label>
-
+              {dependentes.length >
+              0 ? (
+                <div className="mt-5">
+                  <Field label="Adicionar dependente">
                     <select
                       defaultValue=""
-                      onChange={(e) => {
-                        const id = Number(
-                          e.target.value
+                      onChange={(
+                        e
+                      ) => {
+                        const id =
+                          Number(
+                            e.target
+                              .value
+                          );
+
+                        if (!id)
+                          return;
+
+                        adicionarDependente(
+                          id
                         );
 
-                        if (!id) return;
-
-                        adicionarDependente(id);
-
-                        e.target.value = "";
+                        e.target.value =
+                          "";
                       }}
-                      className="w-full mt-1 border border-slate-200 rounded-xl px-4 py-2.5"
+                      className="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f1f3d]/20"
                     >
                       <option value="">
                         Selecionar dependente
@@ -382,45 +513,119 @@ export default function FormReserva({
                         )
                         .map((dep) => (
                           <option
-                            key={dep.id}
-                            value={dep.id}
+                            key={
+                              dep.id
+                            }
+                            value={
+                              dep.id
+                            }
                           >
                             {dep.nome}
                           </option>
                         ))}
                     </select>
-                  </div>
-                )}
-
-                {dependentes.length === 0 && (
+                  </Field>
+                </div>
+              ) : (
+                <div className="mt-5 border border-dashed border-slate-200 rounded-2xl p-4 text-center">
                   <p className="text-sm text-slate-400">
-                    Esse titular não possui dependentes.
+                    Esse titular não
+                    possui dependentes.
                   </p>
-                )}
-
-              </div>
+                </div>
+              )}
             </div>
           )}
-
         </div>
 
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
-
+        <div className="px-6 py-5 border-t border-slate-100 flex items-center justify-end gap-3 bg-white">
           <button
-            onClick={onClose}
-            className="px-5 py-2.5 rounded-xl border border-slate-200"
+            onClick={() => {
+              limparFormulario();
+
+              onClose();
+            }}
+            className="px-5 py-2.5 rounded-2xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
           >
             Cancelar
           </button>
 
           <button
             onClick={salvar}
-            className="px-5 py-2.5 rounded-xl bg-[#0f1f3d] text-white"
+            className="px-5 py-2.5 rounded-2xl bg-[#0f1f3d] text-white hover:bg-[#1a3360] transition-colors"
           >
-            Salvar Reserva
+            {reservaEditando
+              ? "Salvar Alterações"
+              : "Salvar Reserva"}
           </button>
-
         </div>
+      </div>
+    </div>
+  );
+}
+
+interface FieldProps {
+  label: string;
+  children: React.ReactNode;
+}
+
+function Field({
+  label,
+  children,
+}: FieldProps) {
+  return (
+    <div>
+      <label className="text-sm font-medium text-slate-600 mb-1.5 block">
+        {label}
+      </label>
+
+      {children}
+    </div>
+  );
+}
+
+interface HospedeCardProps {
+  nome: string;
+
+  tipo:
+    | "Titular"
+    | "Dependente";
+
+  acao?: React.ReactNode;
+}
+
+function HospedeCard({
+  nome,
+  tipo,
+  acao,
+}: HospedeCardProps) {
+  const isTitular =
+    tipo === "Titular";
+
+  return (
+    <div className="flex items-center justify-between border border-slate-200 bg-white rounded-2xl px-4 py-3">
+      <div>
+        <p className="font-medium text-slate-800">
+          {nome}
+        </p>
+
+        <p className="text-xs text-slate-400 mt-0.5">
+          {tipo}
+        </p>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <span
+          className={`px-3 py-1 rounded-full text-xs font-medium ${
+            isTitular
+              ? "bg-blue-100 text-blue-700"
+              : "bg-purple-100 text-purple-700"
+          }`}
+        >
+          {tipo}
+        </span>
+
+        {acao}
       </div>
     </div>
   );
