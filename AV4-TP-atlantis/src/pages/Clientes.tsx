@@ -12,56 +12,40 @@ import Card from "../shared/components/Card";
 import Modal from "../shared/components/Modal";
 import DetalheCliente from "../components/DetalheCliente";
 import FormCliente from "../components/FormCliente";
+import clientesBase from "../mocks/clientes";
+
+interface Documento {
+  tipo: string;
+  numero: string;
+}
 
 interface Cliente {
   id: number;
   nome: string;
+  nomeSocial: string;
+  dataNascimento: string;
+  tipo: "Titular" | "Dependente";
+  titularId?: number;
   cpf: string;
   telefone: string;
   email: string;
+  endereco: string;
+  reutilizarEndereco: boolean;
+  reutilizarTelefone: boolean;
+  documentos: Documento[];
   status: "Ativo" | "Inativo";
 }
-
-const clientesBase: Cliente[] = [
-  {
-    id: 1,
-    nome: "Alan Turing",
-    cpf: "123.456.789-00",
-    telefone: "(11) 98765-4321",
-    email: "alan@email.com",
-    status: "Ativo",
-  },
-  {
-    id: 2,
-    nome: "Maria Laboissiere",
-    cpf: "987.654.321-00",
-    telefone: "(21) 91234-5678",
-    email: "maria@email.com",
-    status: "Ativo",
-  },
-  {
-    id: 3,
-    nome: "Gerson da Penha",
-    cpf: "456.789.123-00",
-    telefone: "(11) 99876-5432",
-    email: "gerson@email.com",
-    status: "Ativo",
-  },
-  {
-    id: 4,
-    nome: "Ada Lovelace",
-    cpf: "321.654.987-00",
-    telefone: "(31) 98765-1234",
-    email: "ada@email.com",
-    status: "Inativo",
-  },
-];
 
 export default function Clientes() {
   const [busca, setBusca] = useState("");
 
   const [filtro, setFiltro] = useState<
     "Todos" | "Ativo" | "Inativo"
+  >("Todos");
+
+  const [filtroTipo, setFiltroTipo] =
+  useState<
+    "Todos" | "Titular" | "Dependente"
   >("Todos");
 
   const [clientes, setClientes] =
@@ -80,7 +64,7 @@ export default function Clientes() {
   const [clienteSelecionado, setClienteSelecionado] =
     useState<Cliente | null>(null);
 
-  const clientesPorPagina = 20;
+  const clientesPorPagina = 10;
 
   const clientesFiltrados = clientes.filter((cliente) => {
     const nomeOk = cliente.nome
@@ -88,9 +72,14 @@ export default function Clientes() {
       .includes(busca.toLowerCase());
 
     const statusOk =
-      filtro === "Todos" || cliente.status === filtro;
+    filtro === "Todos" ||
+    cliente.status === filtro;
 
-    return nomeOk && statusOk;
+  const tipoOk =
+    filtroTipo === "Todos" ||
+    cliente.tipo === filtroTipo;
+
+  return nomeOk && statusOk && tipoOk;
   });
 
   const totalPaginas = Math.ceil(
@@ -105,6 +94,10 @@ export default function Clientes() {
     indiceInicial,
     indiceFinal
   );
+
+  const titulares = clientes.filter(
+  (cliente) => cliente.tipo === "Titular"
+);
 
   function removerCliente(id: number) {
     setClientes((prev) =>
@@ -174,6 +167,38 @@ export default function Clientes() {
               )
             )}
           </div>
+          
+          <div className="flex gap-2 flex-wrap">
+            {(
+              [
+                "Todos",
+                "Titular",
+                "Dependente",
+              ] as const
+            ).map((item) => (
+              <button
+                key={item}
+                onClick={() => {
+                  setFiltroTipo(item);
+                  setPagina(1);
+                }}
+                className={`
+                  px-3 py-2 rounded-xl text-sm transition
+                  ${
+                    filtroTipo === item
+                      ? item === "Titular"
+                        ? "bg-slate-900 text-white"
+                        : item === "Dependente"
+                        ? "bg-slate-900 text-white"
+                        : "bg-slate-900 text-white"
+                      : "bg-white border border-slate-200 text-slate-600"
+                  }
+                `}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
 
           <button
             onClick={() => setModalNovo(true)}
@@ -195,9 +220,9 @@ export default function Clientes() {
                 <tr className="border-b border-slate-100 bg-slate-50">
                   {[
                     "Nome",
+                    "Tipo",
                     "CPF",
                     "Telefone",
-                    "E-mail",
                     "Status",
                     "Ações",
                   ].map((item) => (
@@ -235,7 +260,31 @@ export default function Clientes() {
                       "
                     >
                       <td className="px-5 py-4 font-medium text-slate-800">
-                        {cliente.nome}
+                        <div className="flex flex-col">
+                          <span>{cliente.nome}</span>
+
+                          {cliente.nomeSocial && (
+                            <span className="text-xs text-slate-400">
+                              {cliente.nomeSocial}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      <td className="px-5 py-4">
+                        <span
+                          className={`
+                            px-3 py-1 rounded-full
+                            text-xs font-medium
+                            ${
+                              cliente.tipo === "Titular"
+                                ? "bg-blue-100 text-blue-700"
+                                : "bg-purple-100 text-purple-700"
+                            }
+                          `}
+                        >
+                          {cliente.tipo}
+                        </span>
                       </td>
 
                       <td className="px-5 py-4 text-slate-500 font-mono text-xs">
@@ -243,11 +292,7 @@ export default function Clientes() {
                       </td>
 
                       <td className="px-5 py-4 text-slate-500">
-                        {cliente.telefone}
-                      </td>
-
-                      <td className="px-5 py-4 text-slate-500">
-                        {cliente.email}
+                        {cliente.telefone || "-"}
                       </td>
 
                       <td className="px-5 py-4">
@@ -280,6 +325,7 @@ export default function Clientes() {
                           >
                             <FiEye size={15} />
                           </button>
+
                           <button
                             onClick={() => {
                               setClienteSelecionado(cliente);
@@ -293,6 +339,7 @@ export default function Clientes() {
                           >
                             <FiEdit2 size={15} />
                           </button>
+
                           <button
                             onClick={() =>
                               removerCliente(cliente.id)
@@ -401,6 +448,7 @@ export default function Clientes() {
           onClose={() => setModalNovo(false)}
         >
           <FormCliente
+            titulares={titulares}
             onSave={(novoCliente: Cliente) => {
               setClientes((prev) => [
                 ...prev,
@@ -431,6 +479,7 @@ export default function Clientes() {
         >
           {clienteSelecionado && (
             <FormCliente
+              titulares={titulares}
               cliente={clienteSelecionado}
               onSave={(clienteAtualizado: Cliente) => {
                 setClientes((prev) =>
