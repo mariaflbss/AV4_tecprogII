@@ -1,7 +1,5 @@
 import { useState } from "react";
-
-import { FiX } from "react-icons/fi";
-
+import { FiX, FiTrash2 } from "react-icons/fi";
 import clientesBase from "../mocks/clientes";
 
 interface HospedeReserva {
@@ -41,6 +39,9 @@ export default function FormReserva({
   const [titularSelecionado, setTitularSelecionado] =
     useState<number | null>(null);
 
+  const [dependentesSelecionados, setDependentesSelecionados] =
+    useState<number[]>([]);
+
   const titulares = clientesBase.filter(
     (cliente) => cliente.tipo === "Titular"
   );
@@ -58,6 +59,38 @@ export default function FormReserva({
 
   if (!aberto) return null;
 
+  function selecionarTitular(id: number) {
+    setTitularSelecionado(id);
+
+    const deps = clientesBase
+      .filter(
+        (cliente) =>
+          cliente.tipo === "Dependente" &&
+          cliente.titularId === id
+      )
+      .map((dep) => dep.id);
+
+    setDependentesSelecionados(deps);
+  }
+
+  function removerDependente(id: number) {
+    setDependentesSelecionados((prev) =>
+      prev.filter((depId) => depId !== id)
+    );
+  }
+
+  function adicionarDependente(id: number) {
+    if (
+      dependentesSelecionados.includes(id)
+    )
+      return;
+
+    setDependentesSelecionados((prev) => [
+      ...prev,
+      id,
+    ]);
+  }
+
   function salvar() {
     if (!titular) return;
 
@@ -68,12 +101,18 @@ export default function FormReserva({
         tipo: "Titular",
       },
 
-      ...dependentes.map((dep) => ({
-        id: dep.id,
-        nome: dep.nome,
-        tipo: "Dependente" as const,
-        titularId: dep.titularId,
-      })),
+      ...dependentes
+        .filter((dep) =>
+          dependentesSelecionados.includes(
+            dep.id
+          )
+        )
+        .map((dep) => ({
+          id: dep.id,
+          nome: dep.nome,
+          tipo: "Dependente" as const,
+          titularId: dep.titularId,
+        })),
     ];
 
     const novaReserva = {
@@ -83,6 +122,7 @@ export default function FormReserva({
       checkIn,
       checkOut,
       status,
+
       avatar: titular.nome
         .split(" ")
         .map((n) => n[0])
@@ -92,12 +132,19 @@ export default function FormReserva({
 
     onSalvar(novaReserva);
     onClose();
+
+    setQuarto("");
+    setCheckIn("");
+    setCheckOut("");
+    setStatus("Pendente");
+    setTitularSelecionado(null);
+    setDependentesSelecionados([]);
   }
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
       <div className="bg-white w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden">
-        
+
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
           <h2 className="text-lg font-bold text-slate-800">
             Nova Reserva
@@ -137,7 +184,14 @@ export default function FormReserva({
               <select
                 value={status}
                 onChange={(e) =>
-                  setStatus(e.target.value as any)
+                  setStatus(
+                    e.target.value as
+                      | "Confirmada"
+                      | "Hospedado"
+                      | "Check-out"
+                      | "Pendente"
+                      | "Cancelada"
+                  )
                 }
                 className="w-full mt-1 border border-slate-200 rounded-xl px-4 py-2.5"
               >
@@ -203,7 +257,7 @@ export default function FormReserva({
             <select
               value={titularSelecionado ?? ""}
               onChange={(e) =>
-                setTitularSelecionado(
+                selecionarTitular(
                   Number(e.target.value)
                 )
               }
@@ -249,26 +303,94 @@ export default function FormReserva({
                   </span>
                 </div>
 
-                {dependentes.map((dep) => (
-                  <div
-                    key={dep.id}
-                    className="flex items-center justify-between border border-slate-200 rounded-xl px-4 py-3"
-                  >
-                    <div>
-                      <p className="font-medium text-slate-800">
-                        {dep.nome}
-                      </p>
+                {dependentesSelecionados.map(
+                  (depId) => {
+                    const dep =
+                      dependentes.find(
+                        (d) => d.id === depId
+                      );
 
-                      <p className="text-xs text-slate-400">
-                        Dependente
-                      </p>
-                    </div>
+                    if (!dep) return null;
 
-                    <span className="px-3 py-1 rounded-full text-xs bg-purple-100 text-purple-700">
-                      Dependente
-                    </span>
+                    return (
+                      <div
+                        key={dep.id}
+                        className="flex items-center justify-between border border-slate-200 rounded-xl px-4 py-3"
+                      >
+                        <div>
+                          <p className="font-medium text-slate-800">
+                            {dep.nome}
+                          </p>
+
+                          <p className="text-xs text-slate-400">
+                            Dependente
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span className="px-3 py-1 rounded-full text-xs bg-purple-100 text-purple-700">
+                            Dependente
+                          </span>
+
+                          <button
+                            onClick={() =>
+                              removerDependente(
+                                dep.id
+                              )
+                            }
+                            className="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center"
+                          >
+                            <FiTrash2 size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+                )}
+
+                {dependentes.length > 0 && (
+                  <div className="pt-2">
+                    <label className="text-sm font-medium text-slate-600">
+                      Adicionar dependente
+                    </label>
+
+                    <select
+                      defaultValue=""
+                      onChange={(e) => {
+                        const id = Number(
+                          e.target.value
+                        );
+
+                        if (!id) return;
+
+                        adicionarDependente(id);
+
+                        e.target.value = "";
+                      }}
+                      className="w-full mt-1 border border-slate-200 rounded-xl px-4 py-2.5"
+                    >
+                      <option value="">
+                        Selecionar dependente
+                      </option>
+
+                      {dependentes
+                        .filter(
+                          (dep) =>
+                            !dependentesSelecionados.includes(
+                              dep.id
+                            )
+                        )
+                        .map((dep) => (
+                          <option
+                            key={dep.id}
+                            value={dep.id}
+                          >
+                            {dep.nome}
+                          </option>
+                        ))}
+                    </select>
                   </div>
-                ))}
+                )}
 
                 {dependentes.length === 0 && (
                   <p className="text-sm text-slate-400">
