@@ -1,4 +1,4 @@
-#  Atlantis — Sistema de Gestão para Hotéis, Pousadas e Resorts
+#  AV4 Técnicas de Programação II - Atlantis — Sistema de Gestão para Hotéis, Pousadas e Resorts
 
 > Interface web moderna para gerenciamento de hóspedes, acomodações, reservas e hospedagens do Sistema Atlantis, desenvolvida em React + TypeScript.
 
@@ -76,7 +76,7 @@ Seguindo o padrão **Builder** do sistema original, as acomodações são catego
 **1. Clone o repositório**
 ```bash
 git clone https://github.com/mariaflbss/AV4_tecprogII
-cd AV4-TPII-atlantis
+cd AV4-TP-atlantis
 ```
 
 **2. Instale as dependências**
