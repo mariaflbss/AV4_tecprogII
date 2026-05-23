@@ -36,7 +36,6 @@ export default function Menu({ itens = itensMenu, onSair }: MenuProps) {
         ${recolhido ? "w-[72px]" : "w-64"}
       `}
     >
-      {/* LOGO + TOGGLE */}
       <div
         className={`
           h-[72px] flex items-center shrink-0
@@ -74,14 +73,12 @@ export default function Menu({ itens = itensMenu, onSair }: MenuProps) {
         </button>
       </div>
 
-      {/* RÓTULO DA SEÇÃO */}
       {!recolhido && (
         <p className="px-5 pt-5 pb-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-white/25">
           Navegação
         </p>
       )}
 
-      {/* ITENS DE NAVEGAÇÃO */}
       <nav className="flex-1 py-2 px-3 overflow-y-auto overflow-x-hidden space-y-0.5">
         {itens.map(({ nome, caminho, icone: Icone }) => {
           const ativo = location.pathname === caminho;
@@ -124,7 +121,6 @@ export default function Menu({ itens = itensMenu, onSair }: MenuProps) {
         })}
       </nav>
 
-      {/* SAIR */}
       <div className="shrink-0 p-3 border-t border-white/[0.06]">
         <button
           title={recolhido ? "Sair" : undefined}
