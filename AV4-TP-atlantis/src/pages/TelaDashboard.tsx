@@ -1,18 +1,25 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
+
 import {
   FiUsers,
   FiCalendar,
-  FiDollarSign,
   FiUserPlus,
   FiClipboard,
   FiPlusCircle,
 } from "react-icons/fi";
+
 import { LuBed } from "react-icons/lu";
 
 import Card from "../shared/components/Card";
 import Tabela from "../shared/components/Tabela";
 import Menu from "../shared/components/Menu";
+import Modal from "../shared/components/Modal";
+
 import GraficoReservas from "../components/GraficoReservas";
+
+import FormCliente from "../components/FormCliente";
+import FormReservas from "../components/FormReservas";
+import FormAcomodacoes from "../components/FormAcomodacoes";
 
 interface Reserva {
   hospede: string;
@@ -112,6 +119,7 @@ function InfoCard({ titulo, valor, icone, cor }: InfoCardProps) {
     <Card className="flex items-center justify-between">
       <div>
         <p className="text-sm text-slate-400">{titulo}</p>
+
         <strong className="text-2xl text-slate-900">{valor}</strong>
       </div>
 
@@ -127,11 +135,15 @@ function InfoCard({ titulo, valor, icone, cor }: InfoCardProps) {
 interface ActionButtonProps {
   icon: ReactNode;
   label: string;
+  onClick?: () => void;
 }
 
-function ActionButton({ icon, label }: ActionButtonProps) {
+function ActionButton({ icon, label, onClick }: ActionButtonProps) {
   return (
-    <button className="w-full flex items-center gap-2 px-4 py-3 rounded-xl bg-slate-900 text-white text-sm hover:bg-slate-800 transition">
+    <button
+      onClick={onClick}
+      className="w-full flex items-center gap-2 px-4 py-3 rounded-xl bg-slate-900 text-white text-sm hover:bg-slate-800 transition"
+    >
       {icon}
       {label}
     </button>
@@ -139,13 +151,19 @@ function ActionButton({ icon, label }: ActionButtonProps) {
 }
 
 export default function Dashboard() {
+  const [abrirCliente, setAbrirCliente] = useState(false);
+  const [abrirReserva, setAbrirReserva] = useState(false);
+  const [abrirAcomodacao, setAbrirAcomodacao] = useState(false);
+
   return (
     <div className="flex min-h-screen bg-slate-50">
       <Menu />
 
       <main className="flex-1 p-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
+          <h1 className="text-2xl font-bold text-slate-900">
+            Dashboard
+          </h1>
 
           <p className="text-sm text-slate-500 mt-1">
             {new Date().toLocaleDateString("pt-BR", {
@@ -156,7 +174,7 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
           <InfoCard
             titulo="Hóspedes"
             valor="1.234"
@@ -176,13 +194,6 @@ export default function Dashboard() {
             valor="87"
             icone={<FiCalendar className="text-white" />}
             cor="bg-amber-500"
-          />
-
-          <InfoCard
-            titulo="Receita"
-            valor="R$ 124.500"
-            icone={<FiDollarSign className="text-white" />}
-            cor="bg-violet-500"
           />
         </div>
 
@@ -214,16 +225,19 @@ export default function Dashboard() {
               <ActionButton
                 icon={<FiUserPlus size={16} />}
                 label="Adicionar hóspede"
+                onClick={() => setAbrirCliente(true)}
               />
 
               <ActionButton
                 icon={<FiClipboard size={16} />}
                 label="Registrar reserva"
+                onClick={() => setAbrirReserva(true)}
               />
 
               <ActionButton
                 icon={<FiPlusCircle size={16} />}
                 label="Adicionar quarto"
+                onClick={() => setAbrirAcomodacao(true)}
               />
             </div>
           </Card>
@@ -232,6 +246,30 @@ export default function Dashboard() {
         <Card>
           <GraficoReservas />
         </Card>
+
+        <Modal
+          aberto={abrirCliente}
+          titulo="Cadastrar hóspede"
+          onClose={() => setAbrirCliente(false)}
+        >
+          <FormCliente />
+        </Modal>
+
+        <FormReservas
+          aberto={abrirReserva}
+          onClose={() => setAbrirReserva(false)}
+          onSalvar={(reserva) => {
+            console.log(reserva);
+          }}
+        />
+
+        <FormAcomodacoes
+          aberto={abrirAcomodacao}
+          onClose={() => setAbrirAcomodacao(false)}
+          onSalvar={(acomodacao) => {
+            console.log(acomodacao);
+          }}
+        />
       </main>
     </div>
   );
