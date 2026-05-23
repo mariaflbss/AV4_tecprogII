@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { TbLayoutDashboard } from "react-icons/tb";
 import { FiUsers, FiLogOut, FiCalendar, FiMenu, FiX } from "react-icons/fi";
 import { BiBuildings } from "react-icons/bi";
@@ -26,6 +26,7 @@ interface MenuProps {
 export default function Menu({ itens = itensMenu, onSair }: MenuProps) {
   const [recolhido, setRecolhido] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   return (
     <aside
@@ -124,7 +125,13 @@ export default function Menu({ itens = itensMenu, onSair }: MenuProps) {
       <div className="shrink-0 p-3 border-t border-white/[0.06]">
         <button
           title={recolhido ? "Sair" : undefined}
-          onClick={onSair}
+          onClick={() => {
+            if (onSair) {
+              onSair();
+            }
+
+            navigate("/login");
+          }}
           className={`
             w-full flex items-center gap-3 rounded-xl
             px-3 py-2.5

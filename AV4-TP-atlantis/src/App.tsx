@@ -27,7 +27,7 @@ function Layout() {
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/dashboard" />} />
+      <Route path="/" element={<Navigate to="/login" />} />
       <Route path="/*" element={<Layout />} />
     </Routes>
   );
