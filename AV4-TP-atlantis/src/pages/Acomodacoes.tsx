@@ -13,7 +13,6 @@ export interface Acomodacao {
   tipo: string;
   descricao: string;
   capacidade: number;
-  precoPorNoite: number;
   status: "Disponível" | "Ocupado";
   imagem: string;
   camasSolteiro?: number;
@@ -29,52 +28,48 @@ const acomodacoesBase: Acomodacao[] = [
   {
     id: 1, numero: "101", tipo: "Quarto de Solteiro Simples",
     descricao: "Quarto aconchegante com vista para o jardim",
-    capacidade: 1, precoPorNoite: 150, status: "Disponível",
-    imagem: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=600&q=80",
+    capacidade: 1, status: "Disponível",
+    imagem: "https://images.pexels.com/photos/36749692/pexels-photo-36749692.jpeg",
     camasSolteiro: 1, camasCasal: 0, suites: 0, garagem: 0, climatizacao: true, wifi: true, cafeIncluso: false,
   },
   {
     id: 2, numero: "205", tipo: "Quarto de Casal de Luxo",
-    descricao: "Espaçoso quarto duplo com vista para o mar",
-    capacidade: 2, precoPorNoite: 280, status: "Ocupado",
-    imagem: "https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=600&q=80",
+    descricao: "Espaçoso quarto duplo com vista para a área de lazer do hotel",
+    capacidade: 2, status: "Ocupado",
+    imagem: "https://images.pexels.com/photos/14025022/pexels-photo-14025022.jpeg",
     camasSolteiro: 0, camasCasal: 1, suites: 0, garagem: 1, climatizacao: true, wifi: true, cafeIncluso: true,
   },
   {
     id: 3, numero: "301", tipo: "Suíte Executiva",
     descricao: "Suíte luxuosa com sala de estar",
-    capacidade: 3, precoPorNoite: 450, status: "Ocupado",
-    imagem: "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=600&q=80",
+    capacidade: 3, status: "Ocupado",
+    imagem: "https://images.pexels.com/photos/19737829/pexels-photo-19737829.jpeg",
     camasSolteiro: 1, camasCasal: 1, suites: 1, garagem: 1, climatizacao: true, wifi: true, cafeIncluso: true,
   },
   {
     id: 4, numero: "108", tipo: "Quarto de Casal Simples",
-    descricao: "Confortável quarto duplo com vista para a cidade",
-    capacidade: 2, precoPorNoite: 200, status: "Disponível",
-    imagem: "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=600&q=80",
+    descricao: "Confortável quarto duplo com vista para área de lazer do hotel",
+    capacidade: 2, status: "Disponível",
+    imagem: "https://images.pexels.com/photos/14025024/pexels-photo-14025024.jpeg",
     camasSolteiro: 0, camasCasal: 1, suites: 0, garagem: 0, climatizacao: false, wifi: true, cafeIncluso: false,
   },
   {
     id: 5, numero: "412", tipo: "Suíte Premium",
     descricao: "Suíte premium com vista panorâmica",
-    capacidade: 4, precoPorNoite: 600, status: "Disponível",
-    imagem: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&q=80",
+    capacidade: 4, status: "Disponível",
+    imagem: "https://images.pexels.com/photos/30708776/pexels-photo-30708776.jpeg",
     camasSolteiro: 2, camasCasal: 1, suites: 1, garagem: 2, climatizacao: true, wifi: true, cafeIncluso: true,
   },
   {
     id: 6, numero: "203", tipo: "Quarto de Solteiro Simples",
     descricao: "Confortável quarto individual",
-    capacidade: 1, precoPorNoite: 150, status: "Disponível",
-    imagem: "https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=600&q=80",
+    capacidade: 1, status: "Disponível",
+    imagem: "https://images.pexels.com/photos/35261473/pexels-photo-35261473.jpeg",
     camasSolteiro: 1, camasCasal: 0, suites: 0, garagem: 0, climatizacao: false, wifi: true, cafeIncluso: false,
   },
 ];
 
 const ITENS_POR_PAGINA = 4;
-
-function formatarPreco(valor: number) {
-  return `R$ ${valor.toLocaleString("pt-BR")}/noite`;
-}
 
 export default function Acomodacoes() {
   const [acomodacoes, setAcomodacoes] = useState<Acomodacao[]>(acomodacoesBase);
@@ -146,14 +141,12 @@ export default function Acomodacoes() {
           </p>
         </div>
 
-        {/* CARDS DE RESUMO */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <CardResumo titulo="Total de quartos" valor={totalQuartos} icone={<LuBed size={20} />} classeIcone="bg-slate-100 text-slate-700" />
           <CardResumo titulo="Disponíveis" valor={disponiveis} icone={<HiOutlineHome size={20} />} classeIcone="bg-emerald-100 text-emerald-700" corValor="text-emerald-600" />
           <CardResumo titulo="Ocupados" valor={ocupados} icone={<FiUsers size={20} />} classeIcone="bg-rose-100 text-rose-600" corValor="text-rose-600" />
         </div>
 
-        {/* BUSCA + FILTROS + BOTÃO — mesma linha */}
         <div className="flex flex-col md:flex-row gap-3 mb-8">
           <div className="relative flex-1">
             <FiSearch size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -189,7 +182,6 @@ export default function Acomodacoes() {
           </button>
         </div>
 
-        {/* GRID DE CARDS */}
         {filtradas.length === 0 ? (
           <div className="bg-white rounded-2xl border border-slate-200 py-20 flex flex-col items-center justify-center gap-3">
             <LuBed size={42} className="text-slate-300" />
@@ -265,7 +257,6 @@ function CardAcomodacao({ acomodacao: a, onExcluir, onEditar, onVisualizar }: {
             <FiUsers size={12} />
             {a.capacidade} {a.capacidade === 1 ? "hóspede" : "hóspedes"}
           </span>
-          <span className="text-xs font-bold text-[#c9a227]">{formatarPreco(a.precoPorNoite)}</span>
         </div>
         <div className="flex gap-2">
           <button onClick={() => onVisualizar(a)} title="Visualizar" className="w-9 h-9 flex items-center justify-center text-sky-500 border border-sky-100 rounded-xl hover:bg-sky-50 transition-colors">
