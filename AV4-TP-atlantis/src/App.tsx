@@ -10,7 +10,6 @@ function Layout() {
   return (
     <div className="flex min-h-screen">
       {/*<SideBar />*/}
-
       <div className="flex-1">
         <Routes>
           <Route path="/dashboard" element={<Dashboard />} />

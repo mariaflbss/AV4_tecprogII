@@ -241,7 +241,6 @@ function CardAcomodacao({ acomodacao: a, onExcluir, onEditar, onVisualizar }: {
   const disponivel = a.status === "Disponível";
   return (
     <div className="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-[0_2px_12px_rgba(0,0,0,0.07)] flex flex-col group hover:shadow-[0_8px_28px_rgba(0,0,0,0.12)] hover:-translate-y-0.5 transition-all duration-300">
-      <div className={`h-1 w-full ${disponivel ? "bg-emerald-500" : "bg-rose-500"}`} />
       <div className="relative overflow-hidden h-44">
         <img src={a.imagem} alt={a.tipo} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
         <span className={`absolute top-3 right-3 text-xs font-bold px-2.5 py-1 rounded-full shadow ${disponivel ? "bg-emerald-500 text-white" : "bg-rose-500 text-white"}`}>
